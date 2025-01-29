@@ -1,0 +1,1 @@
+C:\Users\ostep\Documents\rust\r4.01\target\debug\v020_configuration.exe: C:\Users\ostep\Documents\rust\r4.01\v020_configuration\src\configuration.rs C:\Users\ostep\Documents\rust\r4.01\v020_configuration\src\main.rs

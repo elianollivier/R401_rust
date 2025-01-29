@@ -1,6 +1,8 @@
 use anyhow::Result;
 use clap::Parser;
-use v020_configuration::configuration::Configuration; // ajustez le chemin selon votre module
+mod configuration;
+use configuration::Configuration;
+
 
 #[tokio::main]
 async fn main() -> Result<()> {
