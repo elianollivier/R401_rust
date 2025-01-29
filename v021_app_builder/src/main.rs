@@ -1,10 +1,14 @@
 use anyhow::Result;
 use clap::Parser;
-use configuration::Configuration;
-use app_builder::run_app;
+use v021_app_builder::configuration::Configuration;
+use v021_app_builder::app_builder::run_app;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let configuration = Configuration::parse();
+    let mut configuration = Configuration::parse();
+
+    configuration.candidates.push("blanc".to_string());
+    configuration.candidates.push("nul".to_string());
+    
     run_app(configuration).await
 }
