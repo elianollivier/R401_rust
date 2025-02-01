@@ -1,0 +1,10 @@
+[package]
+name = "v030_domain"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+tokio = { version = "1", features = ["full"] }
+clap = { version = "4.1", features = ["derive"] }
+
