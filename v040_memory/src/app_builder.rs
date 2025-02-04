@@ -1,9 +1,10 @@
 use anyhow::Result;
 use tokio::io::{self,AsyncBufReadExt,BufReader};
 use crate::{configuration::Configuration, domain::{BallotPaper, Candidate, Scoreboard, VoteOutcome, Voter, VotingMachine}, storage::memory::MemoryStore};
+use crate::storage::Storage;
 
 pub async fn run_app(configuration: Configuration) -> Result<()> {
-    let mut voting_machine = create_voting_machine(&configuration);
+    let voting_machine = create_voting_machine(&configuration);
     let store = MemoryStore::new(voting_machine);
 
 
@@ -25,7 +26,7 @@ pub async fn run_app(configuration: Configuration) -> Result<()> {
 
         match parts[0] {
             "votants" => {
-                let machine = store.get_voting_machine();
+                let machine = store.get_voting_machine().await?;
                 println!("Liste des votants :");
                 for v in &machine.get_voters().0 {
                     println!("- {} ", v.0);
@@ -33,7 +34,7 @@ pub async fn run_app(configuration: Configuration) -> Result<()> {
             }
 
             "scores" => {
-                let machine = store.get_voting_machine();
+                let machine = store.get_voting_machine().await?;
                 let scoreboard = &machine.get_scoreboard();
                 println!("Scores :");
                 for (candidate, nb) in &scoreboard.scores {
@@ -65,7 +66,7 @@ pub async fn run_app(configuration: Configuration) -> Result<()> {
                         candidate: Some(Candidate(candidate_name)),
                     }
                 };
-                let mut machine = store.get_voting_machine();
+                let mut machine = store.get_voting_machine().await?;
                 let outcome = machine.vote(ballot_paper);
                 store.put_voting_machine(machine).await?; 
                 match outcome {
