@@ -1,0 +1,11 @@
+[package]
+name = "v040_memory"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+tokio = { version = "1", features = ["full"] }
+clap = { version = "4.1", features = ["derive"] }
+async-trait = "0.1.51"
+
