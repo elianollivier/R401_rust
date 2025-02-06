@@ -1,12 +1,28 @@
 use anyhow::Result;
-use tokio::io::{self,AsyncBufReadExt,BufReader};
-use crate::{configuration::Configuration, domain::{BallotPaper, Candidate, Scoreboard, VoteOutcome, Voter, VotingMachine}, storage::memory::MemoryStore};
-use crate::storage::Storage;
+use std::sync::Arc; 
+use tokio::io::{self, AsyncBufReadExt, BufReader};
+use crate::configuration::{Configuration, StorageType};
+use crate::domain::{BallotPaper, Candidate, Scoreboard, VoteOutcome, Voter, VotingMachine};
+use crate::storage::memory::MemoryStore;
+use crate::storage::file::FileStore;
+
+//cargo run -- --candidates Tux Fedora Ubuntu --storage memory
+
+//cargo run -- --candidates Tux Fedora Ubuntu --storage file
+
 
 pub async fn run_app(configuration: Configuration) -> Result<()> {
     let voting_machine = create_voting_machine(&configuration);
-    let store = MemoryStore::new(voting_machine);
 
+    let store = match configuration.storage {
+        StorageType::File => {
+            Arc::new(FileStore::new(voting_machine).await?)
+        },
+        StorageType::Memory => {
+            Arc::new(MemoryStore::new(voting_machine))
+        },
+        
+    };
 
     let stdin = BufReader::new(io::stdin());
     let mut lines = stdin.lines();
