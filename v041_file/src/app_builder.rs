@@ -5,6 +5,7 @@ use crate::configuration::{Configuration, StorageType};
 use crate::domain::{BallotPaper, Candidate, Scoreboard, VoteOutcome, Voter, VotingMachine};
 use crate::storage::memory::MemoryStore;
 use crate::storage::file::FileStore;
+use crate::storage::Storage;
 
 //cargo run -- --candidates Tux Fedora Ubuntu --storage memory
 
@@ -14,14 +15,13 @@ use crate::storage::file::FileStore;
 pub async fn run_app(configuration: Configuration) -> Result<()> {
     let voting_machine = create_voting_machine(&configuration);
 
-    let store = match configuration.storage {
+    let store: Arc<dyn Storage + Send + Sync> = match configuration.storage {
         StorageType::File => {
-            Arc::new(FileStore::new(voting_machine).await?)
+            Arc::new(FileStore::new(voting_machine).await?) as Arc<dyn Storage + Send + Sync>
         },
         StorageType::Memory => {
-            Arc::new(MemoryStore::new(voting_machine))
+            Arc::new(MemoryStore::new(voting_machine)) as Arc<dyn Storage + Send + Sync>
         },
-        
     };
 
     let stdin = BufReader::new(io::stdin());

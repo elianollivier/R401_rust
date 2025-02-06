@@ -38,12 +38,6 @@ impl Storage for MemoryStore {
 }
 
 mod tests {
-    use super::{VotingMachine, MemoryStore};
-    use crate::domain::Candidate;
-    use crate::domain::Scoreboard;
-    use crate::storage::Storage;
-
-
     #[tokio::test]
     async fn test_pub_and_get() {
         let candidates = vec![

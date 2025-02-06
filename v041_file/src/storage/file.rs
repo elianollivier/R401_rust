@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use std::path::Path;
-use std::fs::{self, File};
+use std::fs::{self};
 use std::collections::{BTreeMap, BTreeSet};
 use serde::{Serialize, Deserialize};
 use crate::domain::{Candidate, Score, Voter, Scoreboard, VotingMachine, AttendenceSheet};
@@ -73,19 +73,6 @@ impl From<VotingMachineDao> for VotingMachine {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 pub struct FileStore {
     filepath: String,
 }
@@ -95,14 +82,19 @@ impl FileStore {
 
     pub async fn create(machine: VotingMachine, filepath: &str) -> anyhow::Result<Self> {
         if !Path::new(filepath).exists() {
-            File::create(filepath)?;
+            let dao = VotingMachineDao::from(machine);
+            let json = serde_json::to_string(&dao)?;
+            fs::write(filepath, json)?;
+        } else {
+            let content = fs::read_to_string(filepath)?;
+            let dao: VotingMachineDao = serde_json::from_str(&content)?;
+            let _loaded_machine = VotingMachine::from(dao);
         }
         
         let file = FileStore{
             filepath : filepath.to_string(),
         };
 
-        file.put_voting_machine(machine).await?;
 
         Ok(file)
     }
