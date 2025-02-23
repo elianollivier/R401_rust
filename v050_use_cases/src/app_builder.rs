@@ -5,6 +5,7 @@ use crate::configuration::{Configuration, StorageType};
 use crate::domain::{BallotPaper, Candidate, Scoreboard, VoteOutcome, Voter, VotingMachine};
 use crate::storage::memory::MemoryStore;
 use crate::storage::file::FileStore;
+use crate::storage::use_cases::{VoteForm, VotingController};
 use crate::storage::Storage;
 
 //cargo run -- --candidates Tux Fedora Ubuntu --storage memory
@@ -23,6 +24,7 @@ pub async fn run_app(configuration: Configuration) -> Result<()> {
             Arc::new(MemoryStore::new(voting_machine)) as Arc<dyn Storage + Send + Sync>
         },
     };
+    let mut controller = VotingController::new(store);
 
     let stdin = BufReader::new(io::stdin());
     let mut lines = stdin.lines();
@@ -42,7 +44,7 @@ pub async fn run_app(configuration: Configuration) -> Result<()> {
 
         match parts[0] {
             "votants" => {
-                let machine = store.get_voting_machine().await?;
+                let machine = controller.get_voting_machine().await?;
                 println!("Liste des votants :");
                 for v in &machine.get_voters().0 {
                     println!("- {} ", v.0);
@@ -50,7 +52,7 @@ pub async fn run_app(configuration: Configuration) -> Result<()> {
             }
 
             "scores" => {
-                let machine = store.get_voting_machine().await?;
+                let machine = controller.get_voting_machine().await?;
                 let scoreboard = &machine.get_scoreboard();
                 println!("Scores :");
                 for (candidate, nb) in &scoreboard.scores {
@@ -68,23 +70,20 @@ pub async fn run_app(configuration: Configuration) -> Result<()> {
                 }
 
                 let votant_name = parts[1].to_string();
-                let voter = Voter(votant_name);
 
-                let ballot_paper = if parts.len() < 3 {
-                    BallotPaper {
-                        voter, 
-                        candidate: None,
+                let vote_form = if parts.len() < 3 {
+                    VoteForm {
+                        voter:votant_name, 
+                        candidate: "".to_string(),
                     }
                 } else {
                     let candidate_name = parts[2].to_string();
-                    BallotPaper {
-                        voter,
-                        candidate: Some(Candidate(candidate_name)),
+                    VoteForm {
+                        voter:votant_name,
+                        candidate: parts[2].to_string(),
                     }
                 };
-                let mut machine = store.get_voting_machine().await?;
-                let outcome = machine.vote(ballot_paper);
-                store.put_voting_machine(machine).await?; 
+                let outcome = controller.vote(vote_form).await?;
                 match outcome {
                     VoteOutcome::BlankVote(v) => {
                         println!("{} a voté blanc",v.0);

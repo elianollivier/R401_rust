@@ -22,7 +22,7 @@ impl MemoryStore {
 impl Storage for MemoryStore {
 
     async fn get_voting_machine(&self) -> anyhow::Result<VotingMachine> {
-        let machine = self.store.read().await;
+        let machine: tokio::sync::RwLockReadGuard<'_, VotingMachine> = self.store.read().await;
         Ok(machine.clone())
         
     }
@@ -32,9 +32,6 @@ impl Storage for MemoryStore {
         *machine_structure = machine;
         Ok(())
     }
-
-
-
 }
 
 mod tests {

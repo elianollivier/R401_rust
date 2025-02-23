@@ -40,12 +40,6 @@ pub struct VotingMachine {
     scoreboard: Scoreboard,
 }
 
-impl From<VoteForm> for BallotPaper {
-
-    fn from(value: VoteForm) -> Self {
-        todo!()
-    }
-}
 
 impl VotingMachine {
     pub fn new(scoreboard:Scoreboard) -> Self {

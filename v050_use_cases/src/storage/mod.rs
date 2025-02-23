@@ -1,5 +1,6 @@
 pub mod memory;
 pub mod file;
+pub mod use_cases;
 use async_trait::async_trait;
 use crate::domain::VotingMachine;
 
