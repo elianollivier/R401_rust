@@ -64,7 +64,7 @@ pub async fn run_app(configuration: Configuration) -> Result<()> {
                     }
                     println!("{} a voté blanc", votant);
                 } else {
-                    let candidat = parts[2].to_string();
+                    let candidat: String = parts[2].to_string();
                     if scores.contains_key(&candidat) {
                         if let Some(count) = scores.get_mut(&candidat) {
                             *count += 1;
