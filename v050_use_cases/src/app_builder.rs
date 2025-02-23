@@ -15,15 +15,17 @@ use crate::storage::Storage;
 pub async fn run_app(configuration: Configuration) -> Result<()> {
     let voting_machine = create_voting_machine(&configuration);
 
+    // On choisit le store en fonction de la config
     let store: Arc<dyn Storage + Send + Sync> = match configuration.storage {
         StorageType::File => {
             Arc::new(FileStore::new(voting_machine).await?) as Arc<dyn Storage + Send + Sync>
-        }
+        },
         StorageType::Memory => {
             Arc::new(MemoryStore::new(voting_machine)) as Arc<dyn Storage + Send + Sync>
-        }
+        },
     };
 
+    // On passe l'Arc<dyn Storage + Send + Sync> au VotingController
     let mut controller = VotingController::new(store);
 
     let stdin = BufReader::new(io::stdin());
@@ -65,6 +67,7 @@ pub async fn run_app(configuration: Configuration) -> Result<()> {
                     continue;
                 }
                 let votant_name = parts[1].to_string();
+
                 let vote_form = if parts.len() < 3 {
                     VoteForm {
                         voter: votant_name,
