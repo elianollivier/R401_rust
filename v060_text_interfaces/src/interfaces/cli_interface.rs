@@ -84,6 +84,7 @@ mod tests {
     use tokio::runtime::Runtime;
     use crate::interfaces::lexicons::french::french_lexicon;
 
+    #[test]
     fn test_handle_line_empty() {
         let rt = Runtime::new().unwrap();
         rt.block_on(async {
@@ -94,7 +95,22 @@ mod tests {
             let lex = french_lexicon();
             let result = handle_line("", &mut controller, &lex).await.unwrap();
 
-            assert_eq!(result,"Commande vide ! (voter, votans, scores)".to_string());
+            assert_eq!(result,"Commande vide ! (voter, votants, scores)".to_string());
+        });
+    }
+    #[test]
+    fn test_handle_line_unknown_command() {
+        let rt = Runtime::new().unwrap();
+        rt.block_on(async {
+            let machine = VotingMachine::new(Scoreboard::new(vec![]));
+            let store = Arc::new(MemoryStore::new(machine));
+            let mut controller = VotingController::new(store);
+
+            let lex = french_lexicon();
+
+            let output = handle_line("toto", &mut controller, &lex).await.unwrap();
+            assert!(output.contains("Commande inconnue"));
+            assert!(output.contains("toto"));
         });
     }
 
