@@ -9,6 +9,9 @@ use crate::storage::memory::MemoryStore;
 use crate::storage::file::FileStore;
 use crate::storage::use_cases::{VoteForm, VotingController};
 use crate::storage::Storage;
+use crate::interfaces::lexicons::french::french_lexicon;
+use crate::interfaces::cli_interface::handle_line;
+
 
 // cargo run -- --candidates Tux Fedora Ubuntu --storage memory --language en
 // cargo run -- --candidates Tux Fedora Ubuntu --storage file --language fr

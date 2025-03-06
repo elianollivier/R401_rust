@@ -2,8 +2,10 @@ use anyhow::Result;
 use crate::domain::{VoteOutcome, Scoreboard, AttendenceSheet};
 use crate::storage::Storage;
 use crate::storage::use_cases::{VoteForm, VotingController};
+use crate::interfaces::lexicon::Lexicon;
 
-pub async fn handle_line<Store: Storage>(line: &str,controller: &mut VotingController<Store>, lex:&Lexicon) -> Result<String> {
+
+pub async fn handle_line<Store: Storage>(line: &str,controller: &mut VotingController, lex:&Lexicon) -> Result<String> {
     let command = line.trim();
     if command.is_empty() {
         return Ok("Commande vide ! (voter, votants, scores".to_string())
@@ -14,12 +16,12 @@ pub async fn handle_line<Store: Storage>(line: &str,controller: &mut VotingContr
         "votants" => {
             let machine = controller.get_voting_machine().await?;
             let attendence_sheet = controller.get_voters();
-            Ok(show_attendence_sheet(attendence_sheet))
+            Ok(show_attendence_sheet(attendence_sheet,lex))
         }
         "scores" => {
             let machine = controller.get_voting_machine().await?;
             let scoreboard = machine.get_scoreboard();
-            Ok(show_scoreboard(scoreboard))
+            Ok(show_scoreboard(scoreboard,lex))
         }
         "voter" => {
             if parts.len() < 2 {
@@ -36,7 +38,7 @@ pub async fn handle_line<Store: Storage>(line: &str,controller: &mut VotingContr
                 candidate : candidate_name,
             };
             let outcome =controller.vote(vote_form).await?;
-            Ok(show_vote_outcome(outcome))
+            Ok(show_vote_outcome(outcome,lex))
         }
         _ => {
             Ok(format!("Commande inconnue : {}", line))
@@ -45,7 +47,7 @@ pub async fn handle_line<Store: Storage>(line: &str,controller: &mut VotingContr
     }
 }
 
-fn show_vote_outcome(outcome: VoteOutcome) -> String {
+fn show_vote_outcome(outcome: VoteOutcome,lex: &Lexicon) -> String {
     match outcome {
         VoteOutcome::BlankVote(v) => format!("{} {}", v.0,lex.blank),
         VoteOutcome::AcceptedVote(v, c) => format!("{} {} {}", v.0,lex.voted_for, c.0),
@@ -54,7 +56,7 @@ fn show_vote_outcome(outcome: VoteOutcome) -> String {
     }
 }
 
-fn show_scoreboard(scoreboard: &Scoreboard) -> String {
+fn show_scoreboard(scoreboard: &Scoreboard,lex: &Lexicon) -> String {
     let mut lines = vec![lex.scoreboard_title.to_string()];
     for (candidate, score) in &scoreboard.scores {
         lines.push(format!("{} : {}", candidate.0, score.0));
@@ -64,7 +66,7 @@ fn show_scoreboard(scoreboard: &Scoreboard) -> String {
     lines.join("\n")
 }
 
-fn show_attendence_sheet(attendence_sheet: &AttendenceSheet) -> String {
+fn show_attendence_sheet(attendence_sheet: &AttendenceSheet,lex: &Lexicon) -> String {
     let mut lines = vec![lex.voters_list_title.to_string()];
     for v in &attendence_sheet.0 {
         lines.push(format!("- {}", v.0));
