@@ -5,17 +5,17 @@ use crate::storage::use_cases::{VoteForm, VotingController};
 use crate::interfaces::lexicon::Lexicon;
 
 
-pub async fn handle_line<Store: Storage>(line: &str,controller: &mut VotingController, lex:&Lexicon) -> Result<String> {
+pub async fn handle_line(line: &str,controller: &mut VotingController, lex:&Lexicon) -> Result<String> {
     let command = line.trim();
     if command.is_empty() {
-        return Ok("Commande vide ! (voter, votants, scores".to_string())
+        return Ok("Commande vide ! (voter, votants, scores)".to_string())
     }
 
-    let parts = command.split_whitespace().collect();
+    let parts: Vec<&str> = command.split_whitespace().collect();
     match parts[0] {
         "votants" => {
             let machine = controller.get_voting_machine().await?;
-            let attendence_sheet = controller.get_voters();
+            let attendence_sheet = machine.get_voters();
             Ok(show_attendence_sheet(attendence_sheet,lex))
         }
         "scores" => {
@@ -74,8 +74,6 @@ fn show_attendence_sheet(attendence_sheet: &AttendenceSheet,lex: &Lexicon) -> St
     lines.join("\n")
 }
 
-/* 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -86,10 +84,18 @@ mod tests {
     use tokio::runtime::Runtime;
     use crate::interfaces::lexicons::french::french_lexicon;
 
-    #[test]
     fn test_handle_line_empty() {
+        let rt = Runtime::new().unwrap();
+        rt.block_on(async {
+            let machine = VotingMachine::new(Scoreboard::new(vec![]));
+            let store = Arc::new(MemoryStore::new(machine));
+            let mut controller = VotingController::new(store);
 
+            let lex = french_lexicon();
+            let result = handle_line("", &mut controller, &lex).await.unwrap();
+
+            assert_eq!(result,"Commande vide ! (voter, votans, scores)".to_string());
+        });
     }
-}
 
-*/
+}
