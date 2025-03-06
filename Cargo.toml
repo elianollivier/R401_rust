@@ -7,5 +7,6 @@ members = [
     "v030_domain",
     "v040_memory",
     "v041_file",
-    "v050_use_cases"
+    "v050_use_cases",
+    "v060_text_interfaces"
 ]
